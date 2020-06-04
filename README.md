@@ -10,7 +10,7 @@ Inputs:
   - Freesurfer processed data
   - Pre-processed DWI, registered to T1w space (e.g. HCP-style, or from [prepdwi](https://github.com/khanlab/prepdwi))
   - BEDPOST processed data (TODO: run bedpost-gpu in this workflow)
-  - ANTS transformations from *template* T1w space to each subject T1w, e.g. from: [ants_build_template_smk](https://github.com/akhanf/ants_build_template_smk)
+  - ANTS transformations from *template* T1w space to/from each subject T1w, e.g. from: [ants_build_template_smk](https://github.com/akhanf/ants_build_template_smk); must include affine, warp and invwarp
 
 Subworkflows:
  - The target segmentations are generated using the [hcp_mmp_to_native](https://github.com/khanlab-snakemake/hcp_mmp_to_native) workflow, referenced as a submodule in this repository
