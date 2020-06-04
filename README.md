@@ -72,10 +72,16 @@ or
     snakemake --use-conda --use-singularity --drmaa --jobs 100
 
 
-If you are using Compute Canada, you can use the [cc-slurm](https://github.com/khanlab/cc-slurm) profile. Once it is set-up with cookiecutter, run:
+If you are using Compute Canada, you can use the [cc-slurm](https://github.com/khanlab/cc-slurm) profile, which submits jobs and takes care of requesting the correct resources per job (including GPUs). Once it is set-up with cookiecutter, run:
 
     snakemake --profile cc-slurm
 
+Or, with [neuroglia-helpers](https://github.com/khanlab/neuroglia-helpers) can get a 1-GPU, 8-core, 32gb node and run locally there. First, get the node:
+
+    regularInteractive -g
+    
+Then, run:
+    snakemake --use-conda --use-singularity --cores 8 --resources gpu=1 mem=32000
 
 
 See the [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/executable.html) for further details.
