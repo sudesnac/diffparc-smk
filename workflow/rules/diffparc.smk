@@ -6,14 +6,15 @@ rule combine_lr_hcp:
     output:
         lh_rh = 'results/diffparc/sub-{subject}/masks/lh_rh.native.hcp-mmp.nii.gz'
     container: config['singularity_neuroglia']
-    shell: 'fslmaths {input.lh} -max {input.rh} {output.lh_rh}'
+    log: 'logs/combine_lr_hcp/{subject}.log'
+    shell: 'fslmaths {input.lh} -max {input.rh} {output.lh_rh} &> {log}'
 
 
 rule get_template_seed:
     input: 
         seed = lambda wildcards: config['template_prob_seg'][wildcards.seed],
     output: 'results/template_masks/sub-{template}_desc-{seed}_probseg.nii.gz'
-    singularity: config['singularity_neuroglia']
+    container: config['singularity_neuroglia']
     log: 'logs/get_template_seed/{template}_{seed}.log'
     shell:
         'cp -v {input} {output} &> {log}'
@@ -29,7 +30,7 @@ rule transform_to_subject:
         ref = 'results/diffparc/sub-{subject}/masks/lh_rh.native.hcp-mmp.nii.gz'
     output: 'results/diffparc/sub-{subject}/masks/seed_from-{template}_{seed}.nii.gz'
     envmodules: 'ants'
-    singularity: config['singularity_neuroglia']
+    container: config['singularity_neuroglia']
     log: 'logs/transform_to_subject/{template}_sub-{subject}_{seed}.log'
     shell:
         'antsApplyTransforms -d 3 --interpolation Linear -i {input.seed} -o {output} -r {input.ref} -t [{input.affine},1] -t {input.invwarp} &> {log}'
@@ -46,7 +47,7 @@ rule resample_targets:
         mask = 'results/diffparc/sub-{subject}/masks/brain_mask_dwi.nii.gz',
         mask_res = 'results/diffparc/sub-{subject}/masks/brain_mask_dwi_resampled.nii.gz',
         targets_res = 'results/diffparc/sub-{subject}/masks/lh_rh_targets_dwi.nii.gz'
-    singularity: config['singularity_neuroglia']
+    container: config['singularity_neuroglia']
     log: 'logs/resample_targets/sub-{subject}.log'
     group: 'pre_track'
     shell:
@@ -62,7 +63,7 @@ rule resample_seed:
         mask_res = 'results/diffparc/sub-{subject}/masks/brain_mask_dwi_resampled.nii.gz'
     output:
         seed_res = 'results/diffparc/sub-{subject}/masks/seed_from-{template}_{seed}_resampled.nii.gz',
-    singularity: config['singularity_neuroglia']
+    container: config['singularity_neuroglia']
     log: 'logs/resample_seed/{template}_sub-{subject}_{seed}.log'
     group: 'pre_track'
     shell:
@@ -74,7 +75,7 @@ rule binarize_subject_seed:
     params:
         threshold = config['prob_seg_threshold']
     output: 'results/diffparc/sub-{subject}/masks/seed_from-{template}_{seed}.binary.nii.gz'
-    singularity: config['singularity_neuroglia']
+    container: config['singularity_neuroglia']
     log: 'logs/binarize_subject_seed/{template}_sub-{subject}_{seed}.log'
     container: config['singularity_neuroglia']
     shell:
@@ -92,7 +93,7 @@ rule split_targets:
         target_seg = expand('results/diffparc/sub-{subject}/targets/{target}.nii.gz',target=targets,allow_missing=True)
     output:
         target_seg_dir = directory('results/diffparc/sub-{subject}/targets')
-    singularity: config['singularity_neuroglia']
+    container: config['singularity_neuroglia']
     log: 'logs/split_targets/sub-{subject}.log'
     threads: 32 
     group: 'pre_track'
@@ -124,7 +125,8 @@ rule run_probtrack:
     params:
         bedpost_merged = join(config['fsl_bedpost_dir'],config['bedpost_merged_prefix']),
         probtrack_opts = config['probtrack']['opts'],
-        out_target_seg = expand('results/diffparc/sub-{subject}/probtrack_{template}_{seed}/seeds_to_{target}.nii.gz',target=targets,allow_missing=True)
+        out_target_seg = expand('results/diffparc/sub-{subject}/probtrack_{template}_{seed}/seeds_to_{target}.nii.gz',target=targets,allow_missing=True),
+        nsamples = config['probtrack']['nsamples']
     output:
         probtrack_dir = directory('results/diffparc/sub-{subject}/probtrack_{template}_{seed}')
     threads: 2
@@ -133,9 +135,10 @@ rule run_probtrack:
         time = 30, #30 mins
         gpus = 1 #1 gpu
     log: 'logs/run_probtrack/{template}_sub-{subject}_{seed}.log'
+    #TODO: add container here -- currently running binary deployed on graham.. 
     shell:
         'mkdir -p {output.probtrack_dir} && probtrackx2_gpu --samples={params.bedpost_merged}  --mask={input.mask} --seed={input.seed_res} ' 
-        '--targetmasks={input.target_txt} --seedref={input.seed_res} --nsamples={config[''probtrack''][''nsamples'']} ' 
+        '--targetmasks={input.target_txt} --seedref={input.seed_res} --nsamples={params.nsamples} '
         '--dir={output.probtrack_dir} {params.probtrack_opts} -V 2  &> {log}'
 
 
@@ -151,7 +154,7 @@ rule transform_conn_to_template:
     output:
         connmap_dir = directory('results/diffparc/sub-{subject}/probtrack_{template}_{seed}_warped')
     envmodules: 'ants'
-    singularity: config['singularity_neuroglia']
+    container: config['singularity_neuroglia']
     threads: 32
     resources:
         mem_mb = 128000
@@ -167,7 +170,7 @@ rule binarize_template_seed:
     params:
         threshold = config['prob_seg_threshold']
     output: 'results/template_masks/sub-{template}_desc-{seed}_mask.nii.gz'
-    singularity: config['singularity_neuroglia']
+    container: config['singularity_neuroglia']
     log: 'logs/binarize_template_seed/{template}_{seed}.log'
     shell:
         'fslmaths {input} -thr {params.threshold} {output} &> {log}'
@@ -185,6 +188,7 @@ rule save_connmap_template_npz:
         connmap_npz = 'results/diffparc/sub-{subject}/connmap/sub-{subject}_space-{template}_seed-{seed}_connMap.npz'
     log: 'logs/save_connmap_to_template_npz/sub-{subject}_{seed}_{template}.log'
     group: 'post_track'
+    conda: 'envs/sklearn.yml'
     script: '../scripts/save_connmap_template_npz.py'
 
 rule gather_connmap_group:
@@ -193,6 +197,7 @@ rule gather_connmap_group:
     output:
         connmap_group_npz = 'results/connmap/group_space-{template}_seed-{seed}_connMap.npz'
     log: 'logs/gather_connmap_group/{seed}_{template}.log'
+    conda: 'envs/sklearn.yml'
     script: '../scripts/gather_connmap_group.py'
      
 rule spectral_clustering:
@@ -202,6 +207,8 @@ rule spectral_clustering:
         max_k = config['max_k']
     output:
         cluster_k = expand('results/clustering/group_space-{template}_seed-{seed}_method-spectralcosine_k-{k}_cluslabels.nii.gz',k=range(2,config['max_k']+1),allow_missing=True)
+    log: 'logs/spectral_clustering/{seed}_{template}.log'
+    conda: 'envs/sklearn.yml'
     script: '../scripts/spectral_clustering.py'
         
      
