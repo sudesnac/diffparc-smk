@@ -76,6 +76,7 @@ rule binarize_subject_seed:
     output: 'results/diffparc/sub-{subject}/masks/seed_from-{template}_{seed}.binary.nii.gz'
     singularity: config['singularity_neuroglia']
     log: 'logs/binarize_subject_seed/{template}_sub-{subject}_{seed}.log'
+    container: config['singularity_neuroglia']
     shell:
         'fslmaths {input} -thr {params.threshold} {output} &> {log}'
         
@@ -157,7 +158,7 @@ rule transform_conn_to_template:
     log: 'logs/transform_conn_to_template/sub-{subject}_{seed}_{template}.log'
     group: 'post_track'
     shell:
-        'mkdir -p {output} && ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2 parallel  --jobs {threads} antsApplyTransforms -d 3 --interpolation Linear -i {{1}} -o {{2}}  -r {input.ref} -t {input.warp} -t {input.affine} &> {log} :::  {params.in_connmap_3d} :::+ {params.out_connmap_3d}' 
+        'mkdir -p {output} && ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1 parallel  --jobs {threads} antsApplyTransforms -d 3 --interpolation Linear -i {{1}} -o {{2}}  -r {input.ref} -t {input.warp} -t {input.affine} &> {log} :::  {params.in_connmap_3d} :::+ {params.out_connmap_3d}' 
 
 
 
@@ -176,7 +177,7 @@ rule binarize_template_seed:
 
 rule save_connmap_template_npz:
     input:
-        mask = rules.binarize_template_seed.output,
+        mask = 'results/template_masks/sub-{template}_desc-{seed}_mask.nii.gz',
         connmap_dir = 'results/diffparc/sub-{subject}/probtrack_{template}_{seed}_warped'
     params:
         connmap_3d = expand('results/diffparc/sub-{subject}/probtrack_{template}_{seed}_warped/seeds_to_{target}_space-{template}.nii.gz',target=targets,allow_missing=True),
@@ -184,7 +185,7 @@ rule save_connmap_template_npz:
         connmap_npz = 'results/diffparc/sub-{subject}/connmap/sub-{subject}_space-{template}_seed-{seed}_connMap.npz'
     log: 'logs/save_connmap_to_template_npz/sub-{subject}_{seed}_{template}.log'
     group: 'post_track'
-    script: 'scripts/save_connmap_template_npz.py'
+    script: '../scripts/save_connmap_template_npz.py'
 
 rule gather_connmap_group:
     input:
@@ -192,23 +193,7 @@ rule gather_connmap_group:
     output:
         connmap_group_npz = 'results/connmap/group_space-{template}_seed-{seed}_connMap.npz'
     log: 'logs/gather_connmap_group/{seed}_{template}.log'
-    run:
-        import numpy as np
-        
-        #load first file to get shape
-        data = np.load(input['connmap_npz'][0])
-        affine = data['affine']
-        mask = data['mask']
-        conn_shape = data['conn'].shape
-        nsubjects = len(input['connmap_npz'])
-        conn_group = np.zeros([nsubjects,conn_shape[0],conn_shape[1]])
-        
-        for i,npz in enumerate(input['connmap_npz']):
-            data = np.load(npz)
-            conn_group[i,:,:] = data['conn']
-            
-        #save conn_group, mask and affine
-        np.savez(output['connmap_group_npz'], conn_group=conn_group,mask=mask,affine=affine)
+    script: '../scripts/gather_connmap_group.py'
      
 rule spectral_clustering:
     input:
@@ -217,7 +202,7 @@ rule spectral_clustering:
         max_k = config['max_k']
     output:
         cluster_k = expand('results/clustering/group_space-{template}_seed-{seed}_method-spectralcosine_k-{k}_cluslabels.nii.gz',k=range(2,config['max_k']+1),allow_missing=True)
-    script: 'scripts/spectral_clustering.py'
+    script: '../scripts/spectral_clustering.py'
         
      
     
