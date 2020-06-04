@@ -1,0 +1,53 @@
+
+participants_tsv: 'config/participants.tsv'
+
+
+#singularity containers:
+singularity_neuroglia: /project/6007967/akhanf/singularity/bids-apps/khanlab_neuroglia-core_latest.sif 
+
+
+
+#set-up paths to inputs here:
+template_prob_seg: 
+  rpiriform: '/scratch/nchris5/HCP_template_piriform_segmentations/Full_Right_BigBrain_to_HCPSubject_Space_Registration_SmoothedDownsampled/Right_piriform_segmentation_BigBrain_to_HCPtemplate_labeltolabelReg/BigBrainSeg_in_HCPtemplateSegSpace07mm_Smoothed07FWHM_Downsampled.nii.gz'
+
+#to apply to masks in target space before tracking, and template-space before grouping..
+prob_seg_threshold: 0.5
+
+
+template: hcp7Tsubj
+ants_affine_mat: /project/6050199/ext-data/hcp1200/deriv/ants_build_template_hcp_7Tsubj_07mm/results/iter_1/sub-{subject}_0GenericAffine.mat
+ants_invwarp_nii: /project/6050199/ext-data/hcp1200/deriv/ants_build_template_hcp_7Tsubj_07mm/results/iter_1/sub-{subject}_1InverseWarp.nii.gz
+ants_warp_nii: /project/6050199/ext-data/hcp1200/deriv/ants_build_template_hcp_7Tsubj_07mm/results/iter_1/sub-{subject}_1Warp.nii.gz
+ants_ref_nii: /project/6050199/ext-data/hcp1200/deriv/ants_build_template_hcp_7Tsubj_07mm/results/iter_1/template_T1w.nii.gz
+
+#list of ROIs in target segmentations 
+targets_txt: cfg/hcp_mmp_sym_180.txt
+
+#bedpost
+fsl_bedpost_dir: /project/6007967/akhanf/projects/hcp/HCP_1200_T1w_Diffusion_FS
+bedpost_mean_s0_samples: '{subject}/T1w/Diffusion.bedpostX/mean_S0samples.nii.gz'
+bedpost_merged_prefix: '{subject}/T1w/Diffusion.bedpostX/merged'
+
+#maximum number of clusters in spectral clustering
+# will perform with k=2 ... max_k
+max_k: 12
+
+
+#tractography parameters
+probtrack:
+    seed_resolution: 0.7
+    nsamples: 10000
+    opts: '--loopcheck --onewaycondition --cthr=0.2 --nsteps=2000 --steplength=0.5  --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --randfib=2' 
+
+
+#---- unused currently, need to create bedpost gpu rule --- "
+dwi_preproc_dir: /project/6007967/akhanf/projects/hcp/HCP_1200_T1w_Diffusion_FS
+#paths relative to dwi_preproc_dir - needs to be preprocessed dwi in T1w space
+in_dwi_nii: '{subject}/T1w/Diffusion/data.nii.gz'
+in_dwi_bval: '{subject}/T1w/Diffusion/bvals'
+in_dwi_bvec: '{subject}/T1w/Diffusion/bvecs'
+in_dwi_grad_dev: '{subject}/T1w/Diffusion/grad_dev.nii.gz'
+in_dwi_mask_nii: '{subject}/T1w/Diffusion/nodif_brain_mask.nii.gz'
+
+
