@@ -8,7 +8,7 @@ Inputs:
 - participants.tsv with target subject IDs
 - For each target subject:
   - Freesurfer processed data for target subjects
-  - Pre-processed DWI, registered to T1w space (e.g. HCP-style, or from [prepdwi](https://github.com/khanlab/prepdwi) for target
+  - Pre-processed DWI, registered to T1w space (e.g. HCP-style, or from [prepdwi](https://github.com/khanlab/prepdwi))
   - BEDPOST processed data (TODO: run bedpost-gpu in this workflow)
   - ANTS transformations from *template* T1w space to each subject T1w, e.g. from: [ants_build_template_smk](https://github.com/akhanf/ants_build_template_smk)
 
