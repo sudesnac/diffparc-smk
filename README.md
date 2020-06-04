@@ -76,7 +76,7 @@ If you are using Compute Canada, you can use the [cc-slurm](https://github.com/k
 
     snakemake --profile cc-slurm
 
-Or, with [neuroglia-helpers](https://github.com/khanlab/neuroglia-helpers) can get a 1-GPU, 8-core, 32gb node and run locally there. First, get the node:
+Or, with [neuroglia-helpers](https://github.com/khanlab/neuroglia-helpers) can get a 1-GPU, 8-core, 32gb node and run locally there. First, get a node with a GPU (default 8-core, 32gb, 3 hour limit):
 
     regularInteractive -g
     
