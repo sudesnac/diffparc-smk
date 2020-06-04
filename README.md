@@ -81,6 +81,7 @@ Or, with [neuroglia-helpers](https://github.com/khanlab/neuroglia-helpers) can g
     regularInteractive -g
     
 Then, run:
+
     snakemake --use-conda --use-singularity --cores 8 --resources gpu=1 mem=32000
 
 
