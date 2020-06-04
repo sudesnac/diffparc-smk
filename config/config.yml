@@ -40,6 +40,19 @@ probtrack:
     nsamples: 10000
     opts: '--loopcheck --onewaycondition --cthr=0.2 --nsteps=2000 --steplength=0.5  --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --randfib=2' 
 
+#---- for subworkflow: hcp_mmp_to_native ----"
+singularity_freesurfer: /project/6050199/akhanf/singularity/bids-apps/khanlab_freesurfer_v6.0.1-subfields.img
+singularity_connectome_workbench: /project/6007967/software/transparentsingularity/connectome-workbench_1.4.1_20191117.simg/connectome-workbench_1.4.1_20191117.simg 
+
+#path to your freesurfer license file:
+fs_license: /project/6050199/akhanf/opt/freesurfer/.license
+
+#path to subject freesurfer dir (containing surf/ and mri/ subfolders) 
+# use the {subject} wildcard here.. 
+in_freesurfer: /scratch/akhanf/hcp1200_freesurfer/{subject}
+
+
+
 
 #---- unused currently, need to create bedpost gpu rule --- "
 dwi_preproc_dir: /project/6007967/akhanf/projects/hcp/HCP_1200_T1w_Diffusion_FS
@@ -49,5 +62,7 @@ in_dwi_bval: '{subject}/T1w/Diffusion/bvals'
 in_dwi_bvec: '{subject}/T1w/Diffusion/bvecs'
 in_dwi_grad_dev: '{subject}/T1w/Diffusion/grad_dev.nii.gz'
 in_dwi_mask_nii: '{subject}/T1w/Diffusion/nodif_brain_mask.nii.gz'
+
+
 
 
