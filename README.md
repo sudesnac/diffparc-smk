@@ -4,14 +4,16 @@ General-purpose Snakemake workflow for diffusion-based subcortical parcellation
 Uses HCP-MMP cortical parcellation (180 regions, left/right sym labels) as targets and performs probabilistic tracking from the subcortical seed in each subject's space, then brings connectivity data from seed voxels into template space and performs spectral clustering on the concatenated feature vectors to parcellate into k regions.
 
 Inputs:
-- Probabilistic segmentation(s) as 3D NIFTI for subcortical structure(s) in a *template* T1w space
-- Freesurfer processed data
-- Pre-processed DWI, registered to T1w space (e.g. HCP-style, or from [prepdwi](https://github.com/khanlab/prepdwi)
-- BEDPOST processed data (TODO: run bedpost-gpu in this workflow)
-- ANTS transformations from *template* T1w space to each subject T1w, e.g. from: [ants_build_template_smk](https://github.com/akhanf/ants_build_template_smk)
+- Probabilistic segmentation(s) as 3D NIFTI for subcortical structure(s) on a single *template* T1w space
+- participants.tsv with target subject IDs
+- For each target subject:
+  - Freesurfer processed data
+  - Pre-processed DWI, registered to T1w space (e.g. HCP-style, or from [prepdwi](https://github.com/khanlab/prepdwi))
+  - BEDPOST processed data (TODO: run bedpost-gpu in this workflow)
+  - ANTS transformations from *template* T1w space to/from each subject T1w, e.g. from: [ants_build_template_smk](https://github.com/akhanf/ants_build_template_smk); must include affine, warp and invwarp
 
 Subworkflows:
- - [hcp_mmp_to_native](https://github.com/khanlab-snakemake/hcp_mmp_to_native)
+ - The target segmentations are generated using the [hcp_mmp_to_native](https://github.com/khanlab-snakemake/hcp_mmp_to_native) workflow, referenced as a submodule in this repository
 
 Singularity containers required:
  - Freesurfer (for `mri_convert`, `mris_convert`, `mri_info`)
