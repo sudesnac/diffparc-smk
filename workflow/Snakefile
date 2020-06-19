@@ -28,13 +28,9 @@ wildcard_constraints:
 
 
 
-rule all:
+rule all_diffparc:
     input: expand('results/clustering/group_space-{template}_seed-{seed}_method-spectralcosine_k-{k}_cluslabels.nii.gz',template=config['template'],seed=seeds,k=range(2,config['max_k']+1))
 
-subworkflow hcp_mmp_to_native:
-    workdir: '../subworkflows/hcp_mmp_to_native'
-    snakefile: '../subworkflows/hcp_mmp_to_native/workflow/Snakefile'
-    configfile: 'config/config.yml'
 
-
+include: '../subworkflows/hcp_mmp_to_native/workflow/Snakefile'
 include: 'rules/diffparc.smk'

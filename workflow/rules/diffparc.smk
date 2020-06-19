@@ -1,8 +1,8 @@
 
 rule combine_lr_hcp:
     input:
-        lh = hcp_mmp_to_native('results/hcp_mmp/sub-{subject}/lh.native.hcp-mmp.nii.gz'),
-        rh = hcp_mmp_to_native('results/hcp_mmp/sub-{subject}/rh.native.hcp-mmp.nii.gz')
+        lh = 'results/hcp_mmp/sub-{subject}/lh.native.hcp-mmp.nii.gz',
+        rh = 'results/hcp_mmp/sub-{subject}/rh.native.hcp-mmp.nii.gz'
     output:
         lh_rh = 'results/diffparc/sub-{subject}/masks/lh_rh.native.hcp-mmp.nii.gz'
     container: config['singularity_neuroglia']
