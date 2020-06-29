@@ -1,3 +1,0 @@
-[submodule "subworkflows/hcp_mmp_to_native"]
-	path = subworkflows/hcp_mmp_to_native
-	url = https://github.com/khanlab-snakemake/hcp_mmp_to_native
