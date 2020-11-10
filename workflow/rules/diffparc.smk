@@ -171,19 +171,20 @@ rule run_probtrack:
         bedpost_merged = join(config['fsl_bedpost_dir'],config['bedpost_merged_prefix']),
         probtrack_opts = config['probtrack']['opts'],
         out_target_seg = lambda wildcards, output: expand(bids(root=output.probtrack_dir,include_subject_dir=False,prefix='seeds_to',label='{target}',suffix='mask.nii.gz'), target=targets),
-        nsamples = config['probtrack']['nsamples']
+        nsamples = config['probtrack']['nsamples'],
+        container = '/project/6050199/akhanf/singularity/bids-apps/fsl_6.0.3_cuda9.1.sif'
     output:
         probtrack_dir = directory(bids(root='results/diffparc',subject='{subject}',label='{seed}',from_='{template}',suffix='probtrack'))
     threads: 8
-    resources: 
-        mem_mb = 8000, 
+    resources:
+        mem_mb = 8000,
         time = 30, #30 mins
         gpus = 1 #1 gpu
     log: 'logs/run_probtrack/sub-{subject}_{seed}_{template}.log'
-    #TODO: add container here -- currently running binary deployed on graham.. 
     group: 'participant1'
     shell:
-        'mkdir -p {output.probtrack_dir} && probtrackx2_gpu --samples={params.bedpost_merged}  --mask={input.mask} --seed={input.seed_res} ' 
+        'mkdir -p {output.probtrack_dir} && singularity exec -e --nv {params.container} '
+        'probtrackx2_gpu --samples={params.bedpost_merged}  --mask={input.mask} --seed={input.seed_res} '
         '--targetmasks={input.target_txt} --seedref={input.seed_res} --nsamples={params.nsamples} '
         '--dir={output.probtrack_dir} {params.probtrack_opts} -V 2  &> {log}'
 
@@ -246,6 +247,8 @@ rule spectral_clustering:
         max_k = config['max_k']
     output:
         cluster_k = expand(bids(root='results/diffparc',template='{template}',label='{seed}',from_='group',method='spectralcosine',k='{k}',suffix='dseg.nii.gz'),k=range(2,config['max_k']+1),allow_missing=True)
+    resources:
+        mem_mb = 64000
     log: 'logs/spectral_clustering/{seed}_{template}.log'
     conda: '../envs/sklearn.yml'
     group: 'group1'

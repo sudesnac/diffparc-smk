@@ -85,11 +85,12 @@ rule track_from_clusters:
         probtrack_opts = config['probtrack_tractmap']['opts'],
         nsamples = config['probtrack_tractmap']['nsamples'],
         out_track_dirs = lambda wildcards,output: expand('{}/label-{{k_index:02d}}'.format(output.probtrack_dir),k_index=range(1,int(wildcards.k)+1)),
+        container = '/project/6050199/akhanf/singularity/bids-apps/fsl_6.0.3_cuda9.1.sif'
     output:
         probtrack_dir = directory(bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',res='super',suffix='probtrack')),
-    threads: 8 
-    resources: 
-        mem_mb = 8000, 
+    threads: 8
+    resources:
+        mem_mb = 8000,
         time = 30, #30 mins
         gpus = 1 #1 gpu
     log: 'logs/track_from_clusters/sub-{subject}_template-{template}_{seed}_k-{k}.log'
@@ -97,8 +98,8 @@ rule track_from_clusters:
     shell:
         #this job runs probtrack for each seed
         'mkdir -p {params.out_track_dirs} && '
-        ' parallel --jobs 1 ' 
-        '   probtrackx2_gpu --samples={params.bedpost_merged}  --mask={input.mask} --seed={{1}} '
+        ' parallel --jobs 1 '
+        '   singularity exec -e --nv {params.container} probtrackx2_gpu --samples={params.bedpost_merged}  --mask={input.mask} --seed={{1}} '
         '    --seedref={{1}} --nsamples={params.nsamples} '
         '    --dir={{2}} {params.probtrack_opts} -V 2  &> {log}  '
         ' ::: {params.seeds} :::+ {params.out_track_dirs}'
