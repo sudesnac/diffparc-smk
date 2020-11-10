@@ -52,7 +52,7 @@ max_k: 8
 
 #tractography parameters
 probtrack:
-    seed_resolution: 0.7
+    seed_resolution: 1.0
     res_name: dwi # bids deriv filename will have res-{res_name}
 
     nsamples: 10000
