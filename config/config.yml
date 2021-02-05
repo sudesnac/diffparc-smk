@@ -1,5 +1,5 @@
 
-participants_tsv: 'config/testparticipants.tsv'
+participants_tsv: 'config/middle1participants.tsv'
 
 
 #singularity containers:
@@ -24,24 +24,24 @@ in_freesurfer: /scratch/sudesnac/CamCAN/freesurfer/sub-{subject}
 
 
 template_prob_seg: 
-  fullBF: 'resources/CamCAN_young_fullBF_B.nii.gz'
+  fullBF: 'resources/CamCAN_middle1_fullBF_B.nii.gz'
 
 #to apply to masks in target space before tracking, and template-space before grouping..
 prob_seg_threshold: 0.5
 
 
-template: CamCANyoung
-ants_affine_mat: /scratch/sudesnac/CamCAN/camcan_template/results/cohort-young/iter_8/sub-{subject}_0GenericAffine.mat
-ants_invwarp_nii: /scratch/sudesnac/CamCAN/camcan_template/results/cohort-young/iter_8/sub-{subject}_1InverseWarp.nii.gz
-ants_warp_nii: /scratch/sudesnac/CamCAN/camcan_template/results/cohort-young/iter_8/sub-{subject}_1Warp.nii.gz
-ants_ref_nii: /scratch/sudesnac/CamCAN/camcan_template/results/cohort-young/iter_8/template_T1w.nii.gz
+template: CamCANmiddle1
+ants_affine_mat: /scratch/sudesnac/CamCAN/camcan_template/results/cohort-middle1/iter_8/sub-{subject}_0GenericAffine.mat
+ants_invwarp_nii: /scratch/sudesnac/CamCAN/camcan_template/results/cohort-middle1/iter_8/sub-{subject}_1InverseWarp.nii.gz
+ants_warp_nii: /scratch/sudesnac/CamCAN/camcan_template/results/cohort-middle1/iter_8/sub-{subject}_1Warp.nii.gz
+ants_ref_nii: /scratch/sudesnac/CamCAN/camcan_template/results/cohort-middle1/iter_8/template_T1w.nii.gz
 
 #list of ROIs in target segmentations 
 targets_dseg_tsv: resources/label-hcpmmp180_dseg.tsv
 targets_atlas_name: hcpmmp180 #must be [a-zA-Z0-9]+
 
 #bedpost
-fsl_bedpost_dir: /scratch/akhanf/camcan_snakedwi_all/results
+fsl_bedpost_dir: /project/6050199/akhanf/ext-bids/cam-can/deriv/snakedwi/results
 bedpost_mean_s0_samples: 'sub-{subject}/dwi/sub-{subject}_space-T1w_res-orig_desc-eddy_diffusion.bedpostX/mean_S0samples.nii.gz'
 bedpost_merged_prefix: 'sub-{subject}/dwi/sub-{subject}_space-T1w_res-orig_desc-eddy_diffusion.bedpostX/merged'
 

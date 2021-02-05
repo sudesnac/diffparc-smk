@@ -254,6 +254,16 @@ rule spectral_clustering:
     group: 'group1'
     script: '../scripts/spectral_clustering.py'
         
+#sorting the cluster label by AP, sorted = desc
+rule sort_cluster_label:
+    input:
+        seg = bids(root='results/diffparc',template='{template}',label='{seed}',from_='group',method='spectralcosine',k='{k}',suffix='dseg.nii.gz')
+    output:
+        seg = bids(root='results/diffparc',template='{template}',label='{seed}',from_='group',method='spectralcosine',k='{k}',desc='sorted',suffix='dseg.nii.gz'),
+    container: config['singularity']['neuroglia']
+    group: 'group1'
+    shell:
+        'workflow/scripts/sort_labels_by_ap.sh {input.seg} {output.seg} {wildcards.k}'
  
-  
+
 

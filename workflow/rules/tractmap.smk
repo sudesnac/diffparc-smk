@@ -2,12 +2,12 @@
 #space-T1w, desc-groupclus?, dseg
 rule transform_clus_to_subj:
     input: 
-        cluster_k = expand(bids(root='results/diffparc',template='{template}',label='{seed}',from_='group',method='spectralcosine',k='{k}',suffix='dseg.nii.gz'),k=range(2,config['max_k']+1),allow_missing=True),
+        cluster_k = expand(bids(root='results/diffparc',template='{template}',label='{seed}',from_='group',method='spectralcosine',k='{k}',desc='sorted',suffix='dseg.nii.gz'),k=range(2,config['max_k']+1),allow_missing=True),
         affine =  config['ants_affine_mat'],
         invwarp =  config['ants_invwarp_nii'],
         ref = bids(root='results/diffparc',subject='{subject}',space='individual',label=config['targets_atlas_name'],suffix='dseg.nii.gz')
     output: 
-        cluster_k = expand(bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',suffix='dseg.nii.gz'),k=range(2,config['max_k']+1),allow_missing=True)
+        cluster_k = expand(bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',desc='sorted',suffix='dseg.nii.gz'),k=range(2,config['max_k']+1),allow_missing=True)
     envmodules: 'ants'
     container: config['singularity']['neuroglia']
     log: 'logs/transform_clus_to_subject/sub-{subject}_template-{template}_{seed}.log'
@@ -40,10 +40,10 @@ rule resample_brainmask_tractmaps:
 #space-T1w, res=?   dseg
 rule resample_clus_seed:
     input: 
-        seed = bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',suffix='dseg.nii.gz'),
+        seed = bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',desc='sorted',suffix='dseg.nii.gz'),
         mask_res = bids(root='results/tractmap',subject='{subject}',label='brain',res='super',suffix='mask.nii.gz'),
     output:
-        seed_res = bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',res='super',suffix='dseg.nii.gz'),
+        seed_res = bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',res='super',desc='sorted',suffix='dseg.nii.gz'),
     container: config['singularity']['neuroglia']
     log: 'logs/resample_clus_seed/sub-{subject}_template-{template}_{seed}_k-{k}.log'
     group: 'participant2'
@@ -57,12 +57,12 @@ rule resample_clus_seed:
 # space-T1w   mask
 rule subj_split_clus_to_binary_masks:
     input: 
-        cluster_k = bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',res='super',suffix='dseg.nii.gz'),
+        cluster_k = bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',res='super',desc='sorted',suffix='dseg.nii.gz'),
     params:
         mask_file = lambda wildcards, output: bids(root=output.cluster_k_splitdir,subject=wildcards.subject,label='%02d',suffix='mask.nii.gz',include_subject_dir=False),
         mask_bg = lambda wildcards, output: bids(root=output.cluster_k_splitdir,subject=wildcards.subject,label='00',suffix='mask.nii.gz',include_subject_dir=False) #we remove this file 
     output:
-        cluster_k_splitdir = directory(bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',res='super',suffix='seeds'))
+        cluster_k_splitdir = directory(bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',res='super',desc='sorted',suffix='seeds'))
     container: config['singularity']['neuroglia']
     log: 'logs/subj_split_clus_to_binary_masks/sub-{subject}_template-{template}_{seed}_k-{k}.log'
     group: 'participant2'
@@ -77,7 +77,7 @@ rule subj_split_clus_to_binary_masks:
 # space-T1w, res-?
 rule track_from_clusters:
     input:
-        cluster_k_splitdir = bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',res='super',suffix='seeds'),
+        cluster_k_splitdir = bids(root='results/tractmap',subject='{subject}',space='individual',label='{seed}',method='spectralcosine',k='{k}',from_='{template}',res='super',desc='sorted',suffix='seeds'),
         mask = bids(root='results/tractmap',subject='{subject}',label='brain',suffix='mask.nii.gz'),
     params:
         seeds = lambda wildcards, input: expand(bids(root=input.cluster_k_splitdir,subject=wildcards.subject,label='{k_index:02d}',suffix='mask.nii.gz',include_subject_dir=False), k_index=range(1,int(wildcards.k)+1)),
